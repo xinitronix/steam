@@ -59,7 +59,7 @@ EOF
                               
                              fi
 
-      
+
                             if  [ -z "$(mount | grep tmpfs)" ]; then
        
                                  doas mount -t tmpfs tmpfs /compat/linux/var/run/shm
