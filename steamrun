@@ -1,0 +1,177 @@
+#!/bin/sh
+
+ubuntu=ubuntu
+#ubuntu=ubuntu_x86_64
+
+   if ! [ -f $HOME/.asoundrc ]; then
+
+         cat <<EOF > $HOME/.asoundrc
+pcm.!default
+ {
+   type oss
+   device /dev/dsp
+ }
+ mixer.!default
+ {
+   type oss
+   device /dev/dsp
+ }
+ctl.!default {
+   type oss
+   device /dev/mixer
+}     
+
+EOF
+
+   fi
+    
+
+  
+           if  ! [  -f "$HOME/.steam/steamrun.pid" ];then
+
+      if ! [ -z "$(mount | grep linprocfs)" ]; then 
+       
+           doas   umount  /compat/linux/proc
+
+       fi
+
+      else   
+ 
+               echo "remove ~/.steam/steamrun.pid"
+               exit 1
+           
+             fi
+
+
+               if [ -d /compat/$ubuntu/ ] ; then  
+ 
+
+                           if  [ -z "$(mount | grep nullfs )" ]; then 
+    
+                               doas mount -t nullfs /compat/$ubuntu/ /compat/linux/
+
+                            fi
+
+
+                            if  [ -z "$(mount | grep linprocfs)" ]; then 
+       
+                                doas mount -t linprocfs linproc /compat/linux/proc
+                              
+                             fi
+
+      
+                            if  [ -z "$(mount | grep tmpfs)" ]; then
+       
+                                 doas mount -t tmpfs tmpfs /compat/linux/var/run/shm
+                       
+                             fi
+
+
+
+                              if  [ -z "$(mount | grep linsysfs)" ]; then
+       
+                                  doas mount -t linsysfs linsys /compat/linux/sys
+
+                               fi
+
+                        doas chmod 1777 /compat/linux/var/run/shm
+                        doas chmod 1777 /compat/linux/tmp
+
+                  fi
+
+
+      if ! [ -d  "$HOME/.steam/sdk32/"  ]; then
+
+           mkdir -p  $HOME/.steam/sdk32/
+
+       fi
+
+      
+     if ! [ -d  "$HOME/.steam/sdk64/"  ]; then
+
+           mkdir -p  $HOME/.steam/sdk64/
+
+       fi
+
+
+
+
+ 
+
+  
+      if  [ -f $HOME/.steam/steam/ubuntu12_32/steamwebhelper.bak ]; then
+
+           mv     $HOME/.steam/steam/ubuntu12_32/steamwebhelper.bak     $HOME/.steam/steam/ubuntu12_32/steamwebhelper
+
+       fi
+
+
+
+       if ! [ -L "$HOME/.steam/sdk32/steamclient.so" ]; then
+
+            ln -s    $HOME/.steam/steam/linux32/steamclient.so       $HOME/.steam/sdk32/steamclient.so
+
+        fi
+
+       if ! [ -L "$HOME/.steam/sdk64/steamclient.so" ]; then
+
+            ln -s    $HOME/.steam/steam/linux64/steamclient.so       $HOME/.steam/sdk64/steamclient.so
+
+        fi
+
+
+
+
+       # use the  variable $1 like this :   ./steamrun steam://run/440 
+
+              export LD_LIBRARY_PATH=$HOME/.local/share/Steam/ubuntu12_32
+              export STEAM_FRAME_FORCE_CLOSE=1
+       
+              $HOME/.local/share/Steam/ubuntu12_32/steam   $1 &
+              echo $! > $HOME/.steam/steamrun.pid
+
+              sleep 5
+
+      
+               if  [ -f $HOME/.steam/steam/ubuntu12_32/steamwebhelper ]; then
+
+                    mv $HOME/.steam/steam/ubuntu12_32/steamwebhelper $HOME/.steam/steam/ubuntu12_32/steamwebhelper.bak
+              
+                fi
+             
+              
+    
+
+       while ! [  -z "$(ps aux | grep "$(cat $HOME/.steam/steamrun.pid | sed 's/^/\[/g'  | sed 's/^\(..\)/\1]/' )")" ] 
+
+                do
+                sleep 1
+
+        done 
+ 
+              rm $HOME/.steam/steamrun.pid
+   
+      if  [ -f $HOME/.steam/steam/ubuntu12_32/steamwebhelper.bak ]; then
+
+          mv $HOME/.steam/steam/ubuntu12_32/steamwebhelper.bak  $HOME/.steam/steam/ubuntu12_32/steamwebhelper
+
+       fi
+
+      
+   if ! [ -z  "$(mount | grep $ubuntu)"  ] ; then  
+  
+       doas umount -f  /compat/linux/proc
+       doas umount -f  /compat/linux/var/run/shm
+       doas umount -f  /compat/linux/sys
+       doas umount -f  /compat/linux
+
+    fi
+
+      if  [  -z "$(mount | grep linprocfs )" ]; then
+
+          doas mount -t linprocfs linproc /compat/linux/proc
+       
+       fi
+
+
+       
